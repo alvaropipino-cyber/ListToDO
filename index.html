@@ -106,6 +106,88 @@
   .add-btn:hover { opacity: 0.85; }
   .add-btn:active { transform: scale(0.97); }
 
+  /* Priority selector in form */
+  .priority-select {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    box-shadow: var(--shadow);
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 60px;
+    text-align: center;
+  }
+  .priority-select:focus { border-color: var(--todo-accent); }
+
+  /* Priority badge on card */
+  .priority-badge {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 1px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+  }
+  .priority-badge:hover { transform: scale(1.1); }
+  .p-low    { background: #E8F5E9; color: #2E7D32; }
+  .p-mid    { background: #FFF8E1; color: #F57F17; }
+  .p-high   { background: #FDECEA; color: #C62828; }
+
+  /* Priority edit popover */
+  .prio-popover {
+    display: none;
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(28,28,26,0.12);
+    z-index: 20;
+    padding: 8px;
+    width: 180px;
+  }
+  .prio-popover.open { display: block; }
+  .prio-popover-label {
+    font-size: 11px;
+    color: var(--ink3);
+    text-align: center;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .prio-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .prio-opt {
+    border: none;
+    border-radius: 6px;
+    padding: 5px 0;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.1s, transform 0.1s;
+    text-align: center;
+  }
+  .prio-opt:hover { opacity: 0.8; transform: scale(1.08); }
+  .prio-opt.active { outline: 2px solid var(--ink); outline-offset: 1px; }
+
   /* Board */
   .board {
     max-width: 980px;
@@ -286,6 +368,18 @@
 
 <div class="add-form">
   <input class="add-input" id="new-task-input" type="text" placeholder="Escribe una nueva tarea y presiona Agregar…" maxlength="200">
+  <select class="priority-select" id="new-task-priority" title="Prioridad (1 = mínima, 10 = máxima)">
+    <option value="5">P5</option>
+    <option value="1">P1</option>
+    <option value="2">P2</option>
+    <option value="3">P3</option>
+    <option value="4">P4</option>
+    <option value="6">P6</option>
+    <option value="7">P7</option>
+    <option value="8">P8</option>
+    <option value="9">P9</option>
+    <option value="10">P10</option>
+  </select>
   <button class="add-btn" onclick="addTask()">+ Agregar</button>
 </div>
 
@@ -322,21 +416,41 @@ const COLS = ['todo', 'prog', 'done'];
 const COL_LABELS = { todo: 'Por hacer', prog: 'En progreso', done: 'Hecho' };
 const COL_COLORS = { todo: '#6C4FD4', prog: '#D4800A', done: '#1A8A52' };
 
+// Priority: 10 = highest (shown first), 1 = lowest
+// Color tiers: 8-10 high (red), 4-7 mid (amber), 1-3 low (green)
+function prioClass(p) {
+  if (p >= 8) return 'p-high';
+  if (p >= 4) return 'p-mid';
+  return 'p-low';
+}
+function prioColors(p) {
+  if (p >= 8) return { bg:'#FDECEA', fg:'#C62828' };
+  if (p >= 4) return { bg:'#FFF8E1', fg:'#F57F17' };
+  return { bg:'#E8F5E9', fg:'#2E7D32' };
+}
+
 function loadTasks() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
 }
-function saveTasks(tasks) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
+function saveTasks(t) { localStorage.setItem(STORAGE_KEY, JSON.stringify(t)); }
 
 let tasks = loadTasks();
+// Migrate old tasks that lack priority
+tasks.forEach(t => { if (t.priority == null) t.priority = 5; });
 let openMenu = null;
+
+function sortedForCol(col) {
+  const filtered = tasks.filter(t => t.status === col);
+  if (col === 'done') return filtered; // done: no reordering needed
+  // Sort by priority descending (10 first)
+  return [...filtered].sort((a, b) => b.priority - a.priority);
+}
 
 function render() {
   COLS.forEach(col => {
     const container = document.getElementById('tasks-' + col);
-    const colTasks = tasks.filter(t => t.status === col);
+    const colTasks = sortedForCol(col);
     document.getElementById('count-' + col).textContent = colTasks.length;
     container.innerHTML = '';
     if (colTasks.length === 0) {
@@ -344,15 +458,34 @@ function render() {
       return;
     }
     colTasks.forEach(task => {
-      const card = document.createElement('div');
-      card.className = 'task-card';
+      const p = task.priority || 5;
+      const pc = prioClass(p);
       const others = COLS.filter(c => c !== col);
       const options = others.map(c =>
         `<div class="move-option" onclick="moveTask('${task.id}','${c}')">
           <span class="dot" style="background:${COL_COLORS[c]}"></span>${COL_LABELS[c]}
         </div>`
       ).join('');
+
+      // Priority options for popover (1-10)
+      const prioOpts = Array.from({length:10},(_,i)=>i+1).map(n => {
+        const {bg,fg} = prioColors(n);
+        const active = n === p ? ' active' : '';
+        return `<button class="prio-opt${active}" style="background:${bg};color:${fg}"
+          onclick="setPriority(event,'${task.id}',${n})">${n}</button>`;
+      }).join('');
+
+      const card = document.createElement('div');
+      card.className = 'task-card';
       card.innerHTML = `
+        <div class="priority-badge ${pc}" title="Prioridad ${p} — clic para cambiar"
+             onclick="togglePrioPopover(event,'prio-${task.id}')">
+          ${p}
+          <div class="prio-popover" id="prio-${task.id}">
+            <span class="prio-popover-label">Prioridad (1–10)</span>
+            <div class="prio-grid">${prioOpts}</div>
+          </div>
+        </div>
         <span class="task-text">${escHtml(task.text)}</span>
         <div class="task-actions">
           <div class="move-menu">
@@ -376,7 +509,11 @@ function addTask() {
   const input = document.getElementById('new-task-input');
   const text = input.value.trim();
   if (!text) return;
-  tasks.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), text, status: 'todo' });
+  const priority = parseInt(document.getElementById('new-task-priority').value) || 5;
+  tasks.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    text, status: 'todo', priority
+  });
   saveTasks(tasks);
   render();
   input.value = '';
@@ -395,11 +532,28 @@ function deleteTask(id) {
   render();
 }
 
+function setPriority(e, id, p) {
+  e.stopPropagation();
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.priority = p; saveTasks(tasks); render(); }
+  closeAllPopovers();
+}
+
+function togglePrioPopover(e, popId) {
+  e.stopPropagation();
+  const pop = document.getElementById(popId);
+  const wasOpen = pop.classList.contains('open');
+  closeAllPopovers();
+  closeAllMenus();
+  if (!wasOpen) pop.classList.add('open');
+}
+
 function toggleMenu(e, menuId) {
   e.stopPropagation();
   const menu = document.getElementById(menuId);
   const wasOpen = menu.classList.contains('open');
   closeAllMenus();
+  closeAllPopovers();
   if (!wasOpen) { menu.classList.add('open'); openMenu = menuId; }
 }
 
@@ -407,8 +561,11 @@ function closeAllMenus() {
   document.querySelectorAll('.move-dropdown.open').forEach(m => m.classList.remove('open'));
   openMenu = null;
 }
+function closeAllPopovers() {
+  document.querySelectorAll('.prio-popover.open').forEach(p => p.classList.remove('open'));
+}
 
-document.addEventListener('click', closeAllMenus);
+document.addEventListener('click', () => { closeAllMenus(); closeAllPopovers(); });
 document.getElementById('new-task-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') addTask();
 });
