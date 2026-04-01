@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Lista de Tareas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F2EB;
+    --card: #FDFCF8;
+    --ink: #1C1C1A;
+    --ink2: #6B6860;
+    --ink3: #A8A49C;
+    --todo-bg: #EEE9FF;
+    --todo-accent: #6C4FD4;
+    --prog-bg: #FFF4E0;
+    --prog-accent: #D4800A;
+    --done-bg: #E2F5EC;
+    --done-accent: #1A8A52;
+    --border: rgba(28,28,26,0.08);
+    --shadow: 0 2px 12px rgba(28,28,26,0.07);
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  header {
+    padding: 48px 32px 32px;
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .header-left h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .header-left p {
+    font-size: 14px;
+    color: var(--ink3);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+  .task-count {
+    font-size: 13px;
+    color: var(--ink2);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  /* Add task form */
+  .add-form {
+    max-width: 980px;
+    margin: 0 auto 36px;
+    padding: 0 32px;
+    display: flex;
+    gap: 10px;
+  }
+  .add-input {
+    flex: 1;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .add-input::placeholder { color: var(--ink3); }
+  .add-input:focus { border-color: var(--todo-accent); }
+  .add-btn {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .add-btn:hover { opacity: 0.85; }
+  .add-btn:active { transform: scale(0.97); }
+
+  /* Board */
+  .board {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 680px) {
+    .board { grid-template-columns: 1fr; }
+    header, .add-form, .board { padding: 0 16px; }
+    header { padding: 32px 16px 24px; flex-direction: column; align-items: flex-start; }
+  }
+
+  /* Column */
+  .column {
+    background: var(--card);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+  }
+  .col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .col-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .col-todo .col-dot   { background: var(--todo-accent); }
+  .col-prog .col-dot   { background: var(--prog-accent); }
+  .col-done .col-dot   { background: var(--done-accent); }
+  .col-title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink2);
+  }
+  .col-count {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink3);
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 2px 8px;
+  }
+
+  /* Tasks list */
+  .tasks {
+    padding: 14px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    font-size: 13px;
+    color: var(--ink3);
+    font-style: italic;
+    text-align: center;
+  }
+
+  /* Task card */
+  .task-card {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .col-todo .task-card  { background: var(--todo-bg); }
+  .col-prog .task-card  { background: var(--prog-bg); }
+  .col-done .task-card  { background: var(--done-bg); }
+  .task-card:hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(28,28,26,0.06); }
+
+  .task-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .col-done .task-text {
+    text-decoration: line-through;
+    color: var(--ink3);
+  }
+  .task-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .task-card:hover .task-actions { opacity: 1; }
+  .task-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1;
+    transition: background 0.15s;
+    color: var(--ink2);
+  }
+  .task-btn:hover { background: rgba(28,28,26,0.08); }
+  .task-btn.del:hover { background: #fde8e8; color: #c0392b; }
+
+  /* Move menu */
+  .move-menu {
+    position: relative;
+    display: inline-block;
+  }
+  .move-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(28,28,26,0.12);
+    z-index: 10;
+    min-width: 160px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .move-dropdown.open { display: block; }
+  .move-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+    color: var(--ink);
+  }
+  .move-option:hover { background: var(--bg); }
+  .move-option .dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Mi lista<br>de tareas</h1>
+    <p id="date-label"></p>
+  </div>
+  <span class="task-count" id="total-count">0 tareas</span>
+</header>
+
+<div class="add-form">
+  <input class="add-input" id="new-task-input" type="text" placeholder="Escribe una nueva tarea y presiona Agregar…" maxlength="200">
+  <button class="add-btn" onclick="addTask()">+ Agregar</button>
+</div>
+
+<div class="board">
+  <div class="column col-todo" id="col-todo">
+    <div class="col-header">
+      <div class="col-dot"></div>
+      <span class="col-title">Por hacer</span>
+      <span class="col-count" id="count-todo">0</span>
+    </div>
+    <div class="tasks" id="tasks-todo"></div>
+  </div>
+  <div class="column col-prog" id="col-prog">
+    <div class="col-header">
+      <div class="col-dot"></div>
+      <span class="col-title">En progreso</span>
+      <span class="col-count" id="count-prog">0</span>
+    </div>
+    <div class="tasks" id="tasks-prog"></div>
+  </div>
+  <div class="column col-done" id="col-done">
+    <div class="col-header">
+      <div class="col-dot"></div>
+      <span class="col-title">Hecho</span>
+      <span class="col-count" id="count-done">0</span>
+    </div>
+    <div class="tasks" id="tasks-done"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'todo_tasks_v1';
+const COLS = ['todo', 'prog', 'done'];
+const COL_LABELS = { todo: 'Por hacer', prog: 'En progreso', done: 'Hecho' };
+const COL_COLORS = { todo: '#6C4FD4', prog: '#D4800A', done: '#1A8A52' };
+
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+let tasks = loadTasks();
+let openMenu = null;
+
+function render() {
+  COLS.forEach(col => {
+    const container = document.getElementById('tasks-' + col);
+    const colTasks = tasks.filter(t => t.status === col);
+    document.getElementById('count-' + col).textContent = colTasks.length;
+    container.innerHTML = '';
+    if (colTasks.length === 0) {
+      container.innerHTML = '<div class="empty-state">Sin tareas aquí</div>';
+      return;
+    }
+    colTasks.forEach(task => {
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      const others = COLS.filter(c => c !== col);
+      const options = others.map(c =>
+        `<div class="move-option" onclick="moveTask('${task.id}','${c}')">
+          <span class="dot" style="background:${COL_COLORS[c]}"></span>${COL_LABELS[c]}
+        </div>`
+      ).join('');
+      card.innerHTML = `
+        <span class="task-text">${escHtml(task.text)}</span>
+        <div class="task-actions">
+          <div class="move-menu">
+            <button class="task-btn" title="Mover" onclick="toggleMenu(event,'menu-${task.id}')">↕</button>
+            <div class="move-dropdown" id="menu-${task.id}">${options}</div>
+          </div>
+          <button class="task-btn del" title="Eliminar" onclick="deleteTask('${task.id}')">✕</button>
+        </div>`;
+      container.appendChild(card);
+    });
+  });
+  const total = tasks.length;
+  document.getElementById('total-count').textContent = total + (total === 1 ? ' tarea' : ' tareas');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function addTask() {
+  const input = document.getElementById('new-task-input');
+  const text = input.value.trim();
+  if (!text) return;
+  tasks.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), text, status: 'todo' });
+  saveTasks(tasks);
+  render();
+  input.value = '';
+  input.focus();
+}
+
+function moveTask(id, newStatus) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.status = newStatus; saveTasks(tasks); render(); }
+  closeAllMenus();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(tasks);
+  render();
+}
+
+function toggleMenu(e, menuId) {
+  e.stopPropagation();
+  const menu = document.getElementById(menuId);
+  const wasOpen = menu.classList.contains('open');
+  closeAllMenus();
+  if (!wasOpen) { menu.classList.add('open'); openMenu = menuId; }
+}
+
+function closeAllMenus() {
+  document.querySelectorAll('.move-dropdown.open').forEach(m => m.classList.remove('open'));
+  openMenu = null;
+}
+
+document.addEventListener('click', closeAllMenus);
+document.getElementById('new-task-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+// Date label
+const d = new Date();
+const opts = { weekday:'long', day:'numeric', month:'long' };
+document.getElementById('date-label').textContent =
+  d.toLocaleDateString('es-ES', opts).replace(/^\w/, c => c.toUpperCase());
+
+render();
+</script>
+</body>
+</html>
