@@ -3,578 +3,476 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Lista de Tareas</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Tareas</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #F5F2EB;
-    --card: #FDFCF8;
-    --ink: #1C1C1A;
-    --ink2: #6B6860;
-    --ink3: #A8A49C;
-    --todo-bg: #EEE9FF;
-    --todo-accent: #6C4FD4;
-    --prog-bg: #FFF4E0;
-    --prog-accent: #D4800A;
-    --done-bg: #E2F5EC;
-    --done-accent: #1A8A52;
-    --border: rgba(28,28,26,0.08);
-    --shadow: 0 2px 12px rgba(28,28,26,0.07);
-    --radius: 14px;
-  }
+:root {
+  --bg:       #F8F9FA;
+  --surface:  #FFFFFF;
+  --on-1:     #202124;
+  --on-2:     #5F6368;
+  --on-3:     #9AA0A6;
+  --divider:  #E8EAED;
+  --blue:     #1A73E8;
+  --blue-lt:  #E8F0FE;
+  --amber:    #F9AB00;
+  --amber-lt: #FEF7E0;
+  --green:    #1E8E3E;
+  --green-lt: #E6F4EA;
+  --red:      #D93025;
+  --red-lt:   #FCE8E6;
+  --r:        8px;
+  --font:     'Google Sans Text','Google Sans',Roboto,Arial,sans-serif;
+}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100vh;
-    padding: 0 0 60px;
-  }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--on-1);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* Header */
-  header {
-    padding: 48px 32px 32px;
-    max-width: 980px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  .header-left h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-  .header-left p {
-    font-size: 14px;
-    color: var(--ink3);
-    margin-top: 6px;
-    font-weight: 300;
-  }
-  .task-count {
-    font-size: 13px;
-    color: var(--ink2);
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 14px;
-    white-space: nowrap;
-    font-weight: 500;
-  }
+/* Top bar */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--divider);
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-title {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--on-1);
+  flex: 1;
+}
+.topbar-date { font-size: 13px; color: var(--on-2); }
+.topbar-count {
+  font-size: 13px;
+  color: var(--on-2);
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 3px 12px;
+}
 
-  /* Add task form */
-  .add-form {
-    max-width: 980px;
-    margin: 0 auto 36px;
-    padding: 0 32px;
-    display: flex;
-    gap: 10px;
-  }
-  .add-input {
-    flex: 1;
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s;
-    box-shadow: var(--shadow);
-  }
-  .add-input::placeholder { color: var(--ink3); }
-  .add-input:focus { border-color: var(--todo-accent); }
-  .add-btn {
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    padding: 14px 22px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    white-space: nowrap;
-  }
-  .add-btn:hover { opacity: 0.85; }
-  .add-btn:active { transform: scale(0.97); }
+/* Add task */
+.add-wrap {
+  max-width: 1040px;
+  margin: 28px auto 0;
+  padding: 0 24px;
+}
+.add-row {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--r);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  gap: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.add-row:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.1);
+}
+.add-icon { color: var(--on-3); display:flex; align-items:center; flex-shrink:0; }
+.add-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--on-1);
+  background: transparent;
+}
+.add-input::placeholder { color: var(--on-3); }
 
-  /* Priority selector in form */
-  .priority-select {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    box-shadow: var(--shadow);
-    appearance: none;
-    -webkit-appearance: none;
-    min-width: 60px;
-    text-align: center;
-  }
-  .priority-select:focus { border-color: var(--todo-accent); }
+/* Priority chip */
+.prio-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--divider);
+  border-radius: 17px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-2);
+  background: transparent;
+  cursor: pointer;
+  transition: background .1s, border-color .1s;
+  white-space: nowrap;
+  font-family: var(--font);
+  flex-shrink: 0;
+}
+.prio-chip:hover { background: var(--bg); border-color: #bdc1c6; }
+.prio-chip svg { width: 13px; height: 13px; }
 
-  /* Priority badge on card */
-  .priority-badge {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 500;
-    margin-top: 1px;
-    cursor: pointer;
-    transition: transform 0.1s;
-    position: relative;
-  }
-  .priority-badge:hover { transform: scale(1.1); }
-  .p-low    { background: #E8F5E9; color: #2E7D32; }
-  .p-mid    { background: #FFF8E1; color: #F57F17; }
-  .p-high   { background: #FDECEA; color: #C62828; }
+/* Add button */
+.add-btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 18px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.add-btn:hover { background: #1558b0; }
+.add-btn:active { background: #0f47a1; }
 
-  /* Priority edit popover */
-  .prio-popover {
-    display: none;
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(28,28,26,0.12);
-    z-index: 20;
-    padding: 8px;
-    width: 180px;
-  }
-  .prio-popover.open { display: block; }
-  .prio-popover-label {
-    font-size: 11px;
-    color: var(--ink3);
-    text-align: center;
-    margin-bottom: 6px;
-    display: block;
-  }
-  .prio-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-  }
-  .prio-opt {
-    border: none;
-    border-radius: 6px;
-    padding: 5px 0;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.1s, transform 0.1s;
-    text-align: center;
-  }
-  .prio-opt:hover { opacity: 0.8; transform: scale(1.08); }
-  .prio-opt.active { outline: 2px solid var(--ink); outline-offset: 1px; }
+/* Board */
+.board {
+  max-width: 1040px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media(max-width:720px) {
+  .board { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+  .add-wrap, .board { padding: 0 16px; }
+}
 
-  /* Board */
-  .board {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 0 32px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-  @media (max-width: 680px) {
-    .board { grid-template-columns: 1fr; }
-    header, .add-form, .board { padding: 0 16px; }
-    header { padding: 32px 16px 24px; flex-direction: column; align-items: flex-start; }
-  }
+/* Column */
+.column {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--r);
+}
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.col-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.col-todo .col-dot { background: var(--blue); }
+.col-prog .col-dot { background: var(--amber); }
+.col-done .col-dot { background: var(--green); }
+.col-name {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-2);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.col-n {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--on-3);
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
 
-  /* Column */
-  .column {
-    background: var(--card);
-    border-radius: 18px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: 300px;
-  }
-  .col-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .col-dot {
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .col-todo .col-dot   { background: var(--todo-accent); }
-  .col-prog .col-dot   { background: var(--prog-accent); }
-  .col-done .col-dot   { background: var(--done-accent); }
-  .col-title {
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--ink2);
-  }
-  .col-count {
-    margin-left: auto;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink3);
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 2px 8px;
-  }
+/* Tasks list */
+.tasks { padding: 6px; min-height: 72px; display:flex; flex-direction:column; gap:1px; }
+.empty {
+  display:flex; align-items:center; justify-content:center;
+  padding: 24px 12px;
+  font-size: 13px;
+  color: var(--on-3);
+}
 
-  /* Tasks list */
-  .tasks {
-    padding: 14px 14px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-  }
-  .empty-state {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 30px 20px;
-    font-size: 13px;
-    color: var(--ink3);
-    font-style: italic;
-    text-align: center;
-  }
+/* Task row */
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 8px;
+  border-radius: 6px;
+  transition: background .1s;
+  animation: up .16s ease;
+}
+@keyframes up { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
+.task-row:hover { background: var(--bg); }
 
-  /* Task card */
-  .task-card {
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    border: 1px solid transparent;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    animation: slideIn 0.2s ease;
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .col-todo .task-card  { background: var(--todo-bg); }
-  .col-prog .task-card  { background: var(--prog-bg); }
-  .col-done .task-card  { background: var(--done-bg); }
-  .task-card:hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(28,28,26,0.06); }
+/* Priority pill */
+.p-pill {
+  flex-shrink: 0;
+  height: 20px;
+  min-width: 28px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Google Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  cursor: pointer;
+  position: relative;
+  margin-top: 2px;
+  transition: opacity .1s;
+}
+.p-pill:hover { opacity: .72; }
+.p-low  { background:var(--green-lt); color:var(--green); }
+.p-mid  { background:var(--amber-lt); color:#B06000; }
+.p-high { background:var(--red-lt);   color:var(--red); }
 
-  .task-text {
-    flex: 1;
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--ink);
-    word-break: break-word;
-  }
-  .col-done .task-text {
-    text-decoration: line-through;
-    color: var(--ink3);
-  }
-  .task-actions {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  .task-card:hover .task-actions { opacity: 1; }
-  .task-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 3px 5px;
-    border-radius: 6px;
-    font-size: 14px;
-    line-height: 1;
-    transition: background 0.15s;
-    color: var(--ink2);
-  }
-  .task-btn:hover { background: rgba(28,28,26,0.08); }
-  .task-btn.del:hover { background: #fde8e8; color: #c0392b; }
+.task-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--on-1);
+  word-break: break-word;
+}
+.col-done .task-text { text-decoration: line-through; color: var(--on-3); }
 
-  /* Move menu */
-  .move-menu {
-    position: relative;
-    display: inline-block;
-  }
-  .move-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(28,28,26,0.12);
-    z-index: 10;
-    min-width: 160px;
-    overflow: hidden;
-    margin-top: 4px;
-  }
-  .move-dropdown.open { display: block; }
-  .move-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 0.1s;
-    color: var(--ink);
-  }
-  .move-option:hover { background: var(--bg); }
-  .move-option .dot {
-    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-  }
+.task-actions {
+  display: flex;
+  gap: 1px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.task-row:hover .task-actions { opacity: 1; }
+
+.icon-btn {
+  width: 28px; height: 28px;
+  border: none; border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--on-2);
+  transition: background .1s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--divider); }
+.icon-btn.del:hover { background: var(--red-lt); color: var(--red); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* Popovers */
+.popover {
+  display: none;
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--r);
+  box-shadow: 0 4px 20px rgba(32,33,36,.15);
+  z-index: 300;
+  overflow: hidden;
+}
+.popover.open { display: block; }
+
+/* Move popover */
+.move-wrap { position:relative; }
+.move-pop { top: calc(100% + 4px); right: 0; min-width: 168px; }
+.move-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--on-1);
+  transition: background .08s;
+}
+.move-item:hover { background: var(--bg); }
+.move-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* Priority popover */
+.prio-pop {
+  padding: 12px;
+  width: 204px;
+}
+.prio-pop-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-3);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.prio-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+.p-opt {
+  border: none; border-radius: 6px;
+  padding: 5px 0;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  font-family: 'Google Sans', sans-serif;
+  transition: opacity .1s, transform .1s;
+}
+.p-opt:hover { opacity:.72; transform:scale(1.07); }
+.p-opt.active { outline: 2px solid var(--on-1); outline-offset: 1px; }
+
+/* chip popover position */
+.prio-chip .prio-pop { top: calc(100% + 6px); right: 0; overflow:visible; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <h1>Mi lista<br>de tareas</h1>
-    <p id="date-label"></p>
-  </div>
-  <span class="task-count" id="total-count">0 tareas</span>
-</header>
+<div class="topbar">
+  <span class="topbar-title">Tareas</span>
+  <span class="topbar-date" id="date-label"></span>
+  <span class="topbar-count" id="total-count">0 tareas</span>
+</div>
 
-<div class="add-form">
-  <input class="add-input" id="new-task-input" type="text" placeholder="Escribe una nueva tarea y presiona Agregar…" maxlength="200">
-  <select class="priority-select" id="new-task-priority" title="Prioridad (1 = mínima, 10 = máxima)">
-    <option value="5">P5</option>
-    <option value="1">P1</option>
-    <option value="2">P2</option>
-    <option value="3">P3</option>
-    <option value="4">P4</option>
-    <option value="6">P6</option>
-    <option value="7">P7</option>
-    <option value="8">P8</option>
-    <option value="9">P9</option>
-    <option value="10">P10</option>
-  </select>
-  <button class="add-btn" onclick="addTask()">+ Agregar</button>
+<div class="add-wrap">
+  <div class="add-row">
+    <span class="add-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </span>
+    <input class="add-input" id="new-task-input" type="text" placeholder="Agregar tarea…" maxlength="200">
+    <div class="prio-chip" id="prio-chip" onclick="toggleChipPop(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      <span id="chip-lbl">P5</span>
+      <div class="popover prio-pop" id="chip-pop"></div>
+    </div>
+    <button class="add-btn" onclick="addTask()">Agregar</button>
+  </div>
 </div>
 
 <div class="board">
-  <div class="column col-todo" id="col-todo">
-    <div class="col-header">
+  <div class="column col-todo">
+    <div class="col-head">
       <div class="col-dot"></div>
-      <span class="col-title">Por hacer</span>
-      <span class="col-count" id="count-todo">0</span>
+      <span class="col-name">Por hacer</span>
+      <span class="col-n" id="count-todo">0</span>
     </div>
     <div class="tasks" id="tasks-todo"></div>
   </div>
-  <div class="column col-prog" id="col-prog">
-    <div class="col-header">
+  <div class="column col-prog">
+    <div class="col-head">
       <div class="col-dot"></div>
-      <span class="col-title">En progreso</span>
-      <span class="col-count" id="count-prog">0</span>
+      <span class="col-name">En progreso</span>
+      <span class="col-n" id="count-prog">0</span>
     </div>
     <div class="tasks" id="tasks-prog"></div>
   </div>
-  <div class="column col-done" id="col-done">
-    <div class="col-header">
+  <div class="column col-done">
+    <div class="col-head">
       <div class="col-dot"></div>
-      <span class="col-title">Hecho</span>
-      <span class="col-count" id="count-done">0</span>
+      <span class="col-name">Hecho</span>
+      <span class="col-n" id="count-done">0</span>
     </div>
     <div class="tasks" id="tasks-done"></div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'todo_tasks_v1';
-const COLS = ['todo', 'prog', 'done'];
-const COL_LABELS = { todo: 'Por hacer', prog: 'En progreso', done: 'Hecho' };
-const COL_COLORS = { todo: '#6C4FD4', prog: '#D4800A', done: '#1A8A52' };
+const KEY = 'todo_tasks_v1';
+const COLS = ['todo','prog','done'];
+const LABELS = { todo:'Por hacer', prog:'En progreso', done:'Hecho' };
+const COLORS = { todo:'#1A73E8', prog:'#F9AB00', done:'#1E8E3E' };
 
-// Priority: 10 = highest (shown first), 1 = lowest
-// Color tiers: 8-10 high (red), 4-7 mid (amber), 1-3 low (green)
-function prioClass(p) {
-  if (p >= 8) return 'p-high';
-  if (p >= 4) return 'p-mid';
-  return 'p-low';
+const pc = p => p>=8?'p-high':p>=4?'p-mid':'p-low';
+const pcol = p => p>=8?{bg:'#FCE8E6',fg:'#D93025'}:p>=4?{bg:'#FEF7E0',fg:'#B06000'}:{bg:'#E6F4EA',fg:'#1E8E3E'};
+
+function load() { try{return JSON.parse(localStorage.getItem(KEY))||[];}catch{return[];} }
+const save = t => localStorage.setItem(KEY, JSON.stringify(t));
+
+let tasks = load();
+tasks.forEach(t=>{ if(t.priority==null) t.priority=5; });
+let newP = 5;
+
+const SVG_MOVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+const SVG_DEL  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`;
+
+function prioGridHTML(cur, taskId) {
+  return Array.from({length:10},(_,i)=>i+1).map(n=>{
+    const {bg,fg}=pcol(n), a=n===cur?' active':'';
+    const fn = taskId ? `sp(event,'${taskId}',${n})` : `snp(event,${n})`;
+    return `<button class="p-opt${a}" style="background:${bg};color:${fg}" onclick="${fn}">${n}</button>`;
+  }).join('');
 }
-function prioColors(p) {
-  if (p >= 8) return { bg:'#FDECEA', fg:'#C62828' };
-  if (p >= 4) return { bg:'#FFF8E1', fg:'#F57F17' };
-  return { bg:'#E8F5E9', fg:'#2E7D32' };
+
+function buildChipPop() {
+  document.getElementById('chip-pop').innerHTML =
+    `<span class="prio-pop-lbl">Prioridad</span><div class="prio-grid">${prioGridHTML(newP,null)}</div>`;
 }
+buildChipPop();
 
-function loadTasks() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-function saveTasks(t) { localStorage.setItem(STORAGE_KEY, JSON.stringify(t)); }
+function snp(e,p) { e.stopPropagation(); newP=p; document.getElementById('chip-lbl').textContent='P'+p; buildChipPop(); closeAll(); }
 
-let tasks = loadTasks();
-// Migrate old tasks that lack priority
-tasks.forEach(t => { if (t.priority == null) t.priority = 5; });
-let openMenu = null;
-
-function sortedForCol(col) {
-  const filtered = tasks.filter(t => t.status === col);
-  if (col === 'done') return filtered; // done: no reordering needed
-  // Sort by priority descending (10 first)
-  return [...filtered].sort((a, b) => b.priority - a.priority);
+function sorted(col) {
+  const f=tasks.filter(t=>t.status===col);
+  return col==='done'?f:[...f].sort((a,b)=>b.priority-a.priority);
 }
 
 function render() {
-  COLS.forEach(col => {
-    const container = document.getElementById('tasks-' + col);
-    const colTasks = sortedForCol(col);
-    document.getElementById('count-' + col).textContent = colTasks.length;
-    container.innerHTML = '';
-    if (colTasks.length === 0) {
-      container.innerHTML = '<div class="empty-state">Sin tareas aquí</div>';
-      return;
-    }
-    colTasks.forEach(task => {
-      const p = task.priority || 5;
-      const pc = prioClass(p);
-      const others = COLS.filter(c => c !== col);
-      const options = others.map(c =>
-        `<div class="move-option" onclick="moveTask('${task.id}','${c}')">
-          <span class="dot" style="background:${COL_COLORS[c]}"></span>${COL_LABELS[c]}
-        </div>`
-      ).join('');
-
-      // Priority options for popover (1-10)
-      const prioOpts = Array.from({length:10},(_,i)=>i+1).map(n => {
-        const {bg,fg} = prioColors(n);
-        const active = n === p ? ' active' : '';
-        return `<button class="prio-opt${active}" style="background:${bg};color:${fg}"
-          onclick="setPriority(event,'${task.id}',${n})">${n}</button>`;
-      }).join('');
-
-      const card = document.createElement('div');
-      card.className = 'task-card';
-      card.innerHTML = `
-        <div class="priority-badge ${pc}" title="Prioridad ${p} — clic para cambiar"
-             onclick="togglePrioPopover(event,'prio-${task.id}')">
+  COLS.forEach(col=>{
+    const box=document.getElementById('tasks-'+col);
+    const list=sorted(col);
+    document.getElementById('count-'+col).textContent=list.length;
+    box.innerHTML='';
+    if(!list.length){ box.innerHTML='<div class="empty">Sin tareas</div>'; return; }
+    list.forEach(task=>{
+      const p=task.priority||5;
+      const others=COLS.filter(c=>c!==col);
+      const moveItems=others.map(c=>`<div class="move-item" onclick="mv('${task.id}','${c}')"><span class="move-dot" style="background:${COLORS[c]}"></span>${LABELS[c]}</div>`).join('');
+      const row=document.createElement('div');
+      row.className='task-row';
+      row.innerHTML=`
+        <div class="p-pill ${pc(p)}" title="P${p} — clic para cambiar" onclick="tpop(event,'pp-${task.id}')">
           ${p}
-          <div class="prio-popover" id="prio-${task.id}">
-            <span class="prio-popover-label">Prioridad (1–10)</span>
-            <div class="prio-grid">${prioOpts}</div>
+          <div class="popover prio-pop" id="pp-${task.id}" style="top:26px;left:50%;transform:translateX(-50%)">
+            <span class="prio-pop-lbl">Prioridad</span>
+            <div class="prio-grid">${prioGridHTML(p,task.id)}</div>
           </div>
         </div>
-        <span class="task-text">${escHtml(task.text)}</span>
+        <span class="task-text">${esc(task.text)}</span>
         <div class="task-actions">
-          <div class="move-menu">
-            <button class="task-btn" title="Mover" onclick="toggleMenu(event,'menu-${task.id}')">↕</button>
-            <div class="move-dropdown" id="menu-${task.id}">${options}</div>
+          <div class="move-wrap">
+            <button class="icon-btn" title="Mover" onclick="tpop(event,'mp-${task.id}')">${SVG_MOVE}</button>
+            <div class="popover move-pop" id="mp-${task.id}">${moveItems}</div>
           </div>
-          <button class="task-btn del" title="Eliminar" onclick="deleteTask('${task.id}')">✕</button>
+          <button class="icon-btn del" title="Eliminar" onclick="del('${task.id}')">${SVG_DEL}</button>
         </div>`;
-      container.appendChild(card);
+      box.appendChild(row);
     });
   });
-  const total = tasks.length;
-  document.getElementById('total-count').textContent = total + (total === 1 ? ' tarea' : ' tareas');
+  const n=tasks.length;
+  document.getElementById('total-count').textContent=n+(n===1?' tarea':' tareas');
 }
 
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+const esc = s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 function addTask() {
-  const input = document.getElementById('new-task-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const priority = parseInt(document.getElementById('new-task-priority').value) || 5;
-  tasks.push({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-    text, status: 'todo', priority
-  });
-  saveTasks(tasks);
-  render();
-  input.value = '';
-  input.focus();
+  const inp=document.getElementById('new-task-input');
+  const text=inp.value.trim(); if(!text) return;
+  tasks.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2),text,status:'todo',priority:newP});
+  save(tasks); render(); inp.value=''; inp.focus();
 }
 
-function moveTask(id, newStatus) {
-  const t = tasks.find(t => t.id === id);
-  if (t) { t.status = newStatus; saveTasks(tasks); render(); }
-  closeAllMenus();
-}
+function mv(id,status) { const t=tasks.find(t=>t.id===id); if(t){t.status=status;save(tasks);render();} closeAll(); }
+function del(id) { tasks=tasks.filter(t=>t.id!==id); save(tasks); render(); }
+function sp(e,id,p) { e.stopPropagation(); const t=tasks.find(t=>t.id===id); if(t){t.priority=p;save(tasks);render();} closeAll(); }
+function tpop(e,id) { e.stopPropagation(); const el=document.getElementById(id); const was=el.classList.contains('open'); closeAll(); if(!was) el.classList.add('open'); }
+function toggleChipPop(e) { e.stopPropagation(); const p=document.getElementById('chip-pop'); const was=p.classList.contains('open'); closeAll(); if(!was) p.classList.add('open'); }
+function closeAll() { document.querySelectorAll('.popover.open').forEach(p=>p.classList.remove('open')); }
 
-function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  saveTasks(tasks);
-  render();
-}
+document.addEventListener('click', closeAll);
+document.getElementById('new-task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
 
-function setPriority(e, id, p) {
-  e.stopPropagation();
-  const t = tasks.find(t => t.id === id);
-  if (t) { t.priority = p; saveTasks(tasks); render(); }
-  closeAllPopovers();
-}
-
-function togglePrioPopover(e, popId) {
-  e.stopPropagation();
-  const pop = document.getElementById(popId);
-  const wasOpen = pop.classList.contains('open');
-  closeAllPopovers();
-  closeAllMenus();
-  if (!wasOpen) pop.classList.add('open');
-}
-
-function toggleMenu(e, menuId) {
-  e.stopPropagation();
-  const menu = document.getElementById(menuId);
-  const wasOpen = menu.classList.contains('open');
-  closeAllMenus();
-  closeAllPopovers();
-  if (!wasOpen) { menu.classList.add('open'); openMenu = menuId; }
-}
-
-function closeAllMenus() {
-  document.querySelectorAll('.move-dropdown.open').forEach(m => m.classList.remove('open'));
-  openMenu = null;
-}
-function closeAllPopovers() {
-  document.querySelectorAll('.prio-popover.open').forEach(p => p.classList.remove('open'));
-}
-
-document.addEventListener('click', () => { closeAllMenus(); closeAllPopovers(); });
-document.getElementById('new-task-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addTask();
-});
-
-// Date label
-const d = new Date();
-const opts = { weekday:'long', day:'numeric', month:'long' };
 document.getElementById('date-label').textContent =
-  d.toLocaleDateString('es-ES', opts).replace(/^\w/, c => c.toUpperCase());
+  new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
 
 render();
 </script>
